@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3f5a4c">
+<title>Inventario Multiuso</title>
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- ==================== APP ==================== -->
+<div class="app">
+
+  <header class="cabecera">
+    <div class="marca">
+      <span class="logo" aria-hidden="true">🛒</span>
+      <div class="titulo">
+        <h1>Inventario Multiuso</h1>
+        <p id="badge-modo">🏠 Hogar</p>
+      </div>
+    </div>
+    <button id="btn-cambiar-modo" class="btn-modo" title="Cambiar de modalidad">Modo hogar<span class="corto-btn"> · cambiar</span></button>
+  </header>
+
+  <!-- ==================== MODALIDAD HOGAR ==================== -->
+  <div id="contenedor-hogar">
+
+  <!-- VISTA: INICIO -->
+  <section id="vista-inicio">
+    <div id="banner-global"></div>
+    <div class="resumen-cajas">
+      <div class="tarjeta"><h2 id="home-productos">0</h2><p>PRODUCTOS</p></div>
+      <div class="tarjeta"><h2 id="home-unidades">0</h2><p>UNIDADES</p></div>
+      <div class="tarjeta"><h2 id="home-alertas">0</h2><p>ALERTAS</p></div>
+      <div class="tarjeta destacada"><h2 id="home-valor">Bs 0</h2><p>VALOR</p></div>
+    </div>
+    <div id="tarjetas-secciones"></div>
+    <button id="btn-personalizar" class="boton-accion ancho"
+            onclick="MU.negocioUI.abrirAsistente()">🏪 Personalizar mi negocio</button>
+    <p class="nota-pequena">¿Tenés un negocio? Configuralo y pasá al modo comercio con
+      productos, ventas y estadísticas propias. Tus datos del hogar quedan guardados.</p>
+  </section>
+
+  <!-- VISTA: SECCIÓN (productos) -->
+  <section id="vista-seccion" class="oculto">
+    <div id="banner-seccion"></div>
+    <input type="search" id="buscador" class="buscador" placeholder="🔍 Buscar producto...">
+    <div id="chips" class="chips"></div>
+    <div class="resumen-cajas">
+      <div class="tarjeta"><h2 id="sec-productos">0</h2><p>PRODUCTOS</p></div>
+      <div class="tarjeta"><h2 id="sec-unidades">0</h2><p>UNIDADES</p></div>
+      <div class="tarjeta"><h2 id="sec-alertas">0</h2><p>STOCK BAJO</p></div>
+    </div>
+    <div id="lista-productos" class="lista-productos"></div>
+    <div style="text-align:center; margin-top:16px;">
+      <button class="btn-secundario" onclick="preguntarRestablecer()">🔄 Restablecer esta sección</button>
+    </div>
+  </section>
+
+  <!-- VISTA: PRECIOS (doméstica) -->
+  <section id="vista-precios" class="oculto">
+    <div class="resumen-cajas">
+      <div class="tarjeta"><h2 id="val-alimentos">Bs 0.00</h2><p>ALIMENTOS</p></div>
+      <div class="tarjeta"><h2 id="val-limpieza">Bs 0.00</h2><p>LIMPIEZA</p></div>
+      <div class="tarjeta destacada"><h2 id="val-total">Bs 0.00</h2><p>VALOR TOTAL</p></div>
+    </div>
+
+    <div id="panel-ine" class="panel-ine"></div>
+
+    <div class="botones-panel">
+      <button class="boton-accion" id="btn-actualizar-ine" onclick="actualizarINE()">🔄 Actualizar datos INE</button>
+      <button class="boton-accion secundario" id="btn-inflacion" onclick="abrirModalInflacion()">📈 Aplicar inflación a mis precios</button>
+      <button class="boton-accion oculto" id="btn-deshacer" onclick="deshacerInflacion()">↩️ Deshacer último ajuste</button>
+    </div>
+
+    <div class="grafico" id="graf-valor"></div>
+
+    <!-- Bloques nuevos: evolución propia + canasta personal -->
+    <div class="tarjeta-lista" id="bloq-historial"></div>
+    <div class="tarjeta-lista" id="bloq-canasta"></div>
+
+    <div class="tarjeta-lista" id="lista-compras"></div>
+
+    <div class="tarjeta-lista" id="top-valor"></div>
+
+    <div class="tarjeta-lista" id="tabla-var-ine"></div>
+
+    <!-- Precios observados en comercios (muestra, no inflación oficial) -->
+    <div id="bloq-mercado"></div>
+  </section>
+
+  <!-- VISTA: INFORME -->
+  <section id="vista-informe" class="oculto">
+    <div id="banner-informe"></div>
+    <div class="resumen-cajas">
+      <div class="tarjeta"><h2 id="inf-productos">0</h2><p>PRODUCTOS</p></div>
+      <div class="tarjeta"><h2 id="inf-unidades">0</h2><p>UNIDADES</p></div>
+      <div class="tarjeta"><h2 id="inf-alertas">0</h2><p>ALERTAS</p></div>
+    </div>
+    <p style="font-size:.85rem; color:var(--texto-suave); margin-bottom:14px;">
+      El informe incluye ambas secciones con su estado general y sugerencias de compra.
+    </p>
+    <button class="btn-primario" onclick="descargarPDF()">📄 Descargar informe PDF</button>
+    <div class="tarjeta-lista" id="bloq-hist-stock" style="margin-top:16px;"></div>
+  </section>
+
+  </div><!-- /contenedor-hogar -->
+
+  <!-- ==================== MODALIDAD NEGOCIO ==================== -->
+  <div id="contenedor-negocio" class="oculto">
+
+  <!-- VISTA: INICIO DEL NEGOCIO -->
+  <section id="vista-neg-inicio">
+    <div id="banner-neg"></div>
+    <div class="resumen-cajas">
+      <div class="tarjeta"><h2 id="neg-productos">0</h2><p>PRODUCTOS</p></div>
+      <div class="tarjeta"><h2 id="neg-unidades">0</h2><p>UNIDADES</p></div>
+      <div class="tarjeta"><h2 id="neg-alertas">0</h2><p>ALERTAS</p></div>
+      <div class="tarjeta"><h2 id="neg-ingresos">Bs 0.00</h2><p>INGRESOS 30 DÍAS</p></div>
+      <div class="tarjeta destacada"><h2 id="neg-valor">Bs 0.00</h2><p>INVENTARIO A COSTO</p></div>
+    </div>
+    <div class="acciones-rapidas">
+      <button class="boton-accion" onclick="MU.negocioUI.irAVista('movimientos'); MU.negocioUI.abrirTab('venta')">🛒 Registrar venta</button>
+      <button class="boton-accion secundario" onclick="MU.negocioUI.irAVista('movimientos'); MU.negocioUI.abrirTab('entrada')">📥 Registrar entrada</button>
+      <button class="boton-accion secundario" onclick="MU.negocioUI.abrirAsistente()">⚙️ Personalizar mi negocio</button>
+    </div>
+    <div class="tarjeta-lista" id="neg-alertas-lista"></div>
+  </section>
+
+  <!-- VISTA: PRODUCTOS DEL NEGOCIO -->
+  <section id="vista-neg-productos" class="oculto">
+    <input type="search" id="neg-buscador" class="buscador" placeholder="🔍 Buscar producto, marca o código...">
+    <div id="neg-chips" class="chips"></div>
+    <div class="acciones-rapidas">
+      <button class="boton-accion" onclick="MU.negocioUI.abrirProductoModal(null)">＋ Agregar producto</button>
+    </div>
+    <div id="neg-lista" class="lista-productos"></div>
+  </section>
+
+  <!-- VISTA: MOVIMIENTOS Y VENTAS -->
+  <section id="vista-movimientos" class="oculto">
+    <div class="barra-tabs" id="tabs-mov">
+      <button class="chip-tab activo" data-tab="venta" onclick="MU.negocioUI.abrirTab('venta')">🛒 Venta</button>
+      <button class="chip-tab" data-tab="entrada" onclick="MU.negocioUI.abrirTab('entrada')">📥 Entrada</button>
+      <button class="chip-tab" data-tab="ajuste" onclick="MU.negocioUI.abrirTab('ajuste')">⚖️ Ajuste</button>
+      <button class="chip-tab" data-tab="historial" onclick="MU.negocioUI.abrirTab('historial')">📜 Historial</button>
+    </div>
+
+    <!-- Registrar venta -->
+    <div id="mov-venta">
+      <div class="tarjeta-form">
+        <h3>🛒 Registrar venta</h3>
+        <div class="campo"><label>Producto</label><select id="v-producto"></select></div>
+        <div class="doble-campo">
+          <div class="campo"><label>Cantidad</label><input type="number" id="v-cantidad" min="0.01" step="0.01" value="1"></div>
+          <div class="campo"><label>Precio unitario Bs</label><input type="number" id="v-precio" min="0" step="0.01"></div>
+        </div>
+        <button class="btn-secundario ancho" onclick="MU.negocioUI.agregarAlCarrito()">＋ Agregar al carrito</button>
+        <div id="v-carrito" class="carrito"></div>
+        <div class="campo"><label>Nota (opcional)</label><input type="text" id="v-nota" placeholder="Cliente, referencia..."></div>
+        <button class="btn-primario ancho" id="btn-confirmar-venta" onclick="MU.negocioUI.confirmarVenta()">✅ Confirmar venta</button>
+        <p class="nota-pequena">La venta descuenta stock y queda registrada en el historial. No es un sistema fiscal ni de facturación electrónica.</p>
+      </div>
+    </div>
+
+    <!-- Registrar entrada -->
+    <div id="mov-entrada" class="oculto">
+      <div class="tarjeta-form">
+        <h3>📥 Registrar entrada (compra/reposición)</h3>
+        <div class="campo"><label>Producto</label><select id="e-producto"></select></div>
+        <div class="doble-campo">
+          <div class="campo"><label>Cantidad ingresada</label><input type="number" id="e-cantidad" min="0.01" step="0.01" value="1"></div>
+          <div class="campo"><label>Costo unitario Bs (opcional)</label><input type="number" id="e-costo" min="0" step="0.01" placeholder="Actualiza el costo"></div>
+        </div>
+        <div class="campo"><label>Proveedor (opcional)</label><input type="text" id="e-proveedor" placeholder="Nombre del proveedor"></div>
+        <div class="campo"><label>Motivo (opcional)</label><input type="text" id="e-motivo" placeholder="Compra, devolución de cliente..."></div>
+        <button class="btn-primario ancho" id="btn-confirmar-entrada" onclick="MU.negocioUI.confirmarEntrada()">✅ Registrar entrada</button>
+      </div>
+    </div>
+
+    <!-- Ajuste / merma / devolución -->
+    <div id="mov-ajuste" class="oculto">
+      <div class="tarjeta-form">
+        <h3>⚖️ Ajustar inventario</h3>
+        <div class="campo"><label>Tipo de movimiento</label>
+          <select id="a-tipo">
+            <option value="ajuste">Ajuste (+ / −) — corrección contada</option>
+            <option value="merma">Merma / pérdida (−)</option>
+            <option value="devolucion">Devolución recibida (+)</option>
+          </select>
+        </div>
+        <div class="campo"><label>Producto</label><select id="a-producto"></select></div>
+        <div class="campo"><label>Cantidad (siempre positiva; el signo lo da el tipo)</label><input type="number" id="a-cantidad" min="0.01" step="0.01" value="1"></div>
+        <div class="campo oculto" id="a-sentido-campo"><label>Sentido del ajuste</label>
+          <select id="a-sentido"><option value="1">Sumar (+)</option><option value="-1">Restar (−)</option></select>
+        </div>
+        <div class="campo"><label>Motivo (obligatorio para trazabilidad)</label><input type="text" id="a-motivo" placeholder="Ej: conteo cíclico, rotura, robo..."></div>
+        <button class="btn-primario ancho" id="btn-confirmar-ajuste" onclick="MU.negocioUI.confirmarAjuste()">✅ Registrar ajuste</button>
+      </div>
+    </div>
+
+    <!-- Historial -->
+    <div id="mov-historial" class="oculto">
+      <div class="tarjeta-form">
+        <h3>📜 Historial de movimientos</h3>
+        <div class="doble-campo">
+          <div class="campo"><label>Tipo</label>
+            <select id="h-tipo">
+              <option value="">Todos</option>
+              <option value="venta">Ventas</option>
+              <option value="entrada">Entradas</option>
+              <option value="ajuste">Ajustes</option>
+              <option value="merma">Mermas</option>
+              <option value="devolucion">Devoluciones</option>
+            </select>
+          </div>
+          <div class="campo"><label>Período</label>
+            <select id="h-dias">
+              <option value="7">Últimos 7 días</option>
+              <option value="30" selected>Últimos 30 días</option>
+              <option value="90">Últimos 90 días</option>
+              <option value="0">Todo</option>
+            </select>
+          </div>
+        </div>
+        <div id="h-tabla"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VISTA: ESTADÍSTICAS DEL NEGOCIO -->
+  <section id="vista-estadisticas" class="oculto">
+    <div class="tarjeta-form">
+      <h3>📊 Estadísticas de mi negocio</h3>
+      <div class="campo"><label>Período de análisis</label>
+        <select id="sel-periodo" onchange="MU.stats.cambioPeriodo()">
+          <option value="7">Últimos 7 días</option>
+          <option value="30" selected>Últimos 30 días</option>
+          <option value="mes">Mes actual</option>
+          <option value="todo">Histórico completo</option>
+          <option value="custom">Personalizado…</option>
+        </select>
+      </div>
+      <div class="doble-campo oculto" id="periodo-custom">
+        <div class="campo"><label>Desde</label><input type="date" id="p-desde" onchange="MU.stats.render()"></div>
+        <div class="campo"><label>Hasta</label><input type="date" id="p-hasta" onchange="MU.stats.render()"></div>
+      </div>
+    </div>
+    <div id="stats-cont"></div>
+  </section>
+
+  <!-- VISTA: PRECIOS DE MERCADO (negocio) -->
+  <section id="vista-neg-precios" class="oculto">
+    <div id="mercado-neg"></div>
+  </section>
+
+  </div><!-- /contenedor-negocio -->
+
+</div>
+
+<!-- Barra inferior: modo hogar -->
+<nav class="barra-inferior" id="barra-hogar">
+  <button id="nav-inicio" class="activo" onclick="irAVista('inicio')"><span class="ico">🏠</span>Inicio</button>
+  <button id="nav-alimentos" onclick="abrirSeccion('alimentos')"><span class="ico">🍚</span>Alimentos</button>
+  <button id="nav-limpieza" onclick="abrirSeccion('limpieza')"><span class="ico">🧹</span>Limpieza</button>
+  <button id="nav-precios" onclick="irAVista('precios')"><span class="ico">💲</span>Precios</button>
+  <button id="nav-informe" onclick="irAVista('informe')"><span class="ico">📊</span>Informe</button>
+</nav>
+
+<!-- Barra inferior: modo negocio -->
+<nav class="barra-inferior oculto" id="barra-negocio">
+  <button id="nav-neg-inicio" class="activo" onclick="MU.negocioUI.irAVista('inicio')"><span class="ico">🏠</span>Inicio</button>
+  <button id="nav-neg-productos" onclick="MU.negocioUI.irAVista('productos')"><span class="ico">📦</span>Productos</button>
+  <button id="nav-neg-movimientos" onclick="MU.negocioUI.irAVista('movimientos')"><span class="ico">🔁</span>Movim.</button>
+  <button id="nav-neg-estadisticas" onclick="MU.negocioUI.irAVista('estadisticas')"><span class="ico">📊</span>Estadíst.</button>
+  <button id="nav-neg-precios" onclick="MU.negocioUI.irAVista('precios')"><span class="ico">🏷️</span>Precios</button>
+</nav>
+
+<!-- Acciones flotantes (solo vista de productos del hogar) -->
+<div id="acciones-flotantes" class="acciones-flotantes oculto">
+  <button class="fab fab-pdf" onclick="descargarPDF()" title="Descargar PDF">📄</button>
+  <button class="fab" onclick="abrirModalNuevo()" title="Agregar producto">＋</button>
+</div>
+
+<!-- Modal agregar / editar (hogar) -->
+<div id="modal-fondo" class="modal-fondo" onclick="cerrarModalSiFondo(event)">
+  <div class="modal">
+    <h3 id="modal-titulo">Agregar producto</h3>
+    <div class="campo">
+      <label>Nombre</label>
+      <input type="text" id="m-nombre" placeholder="Ej: Arroz">
+    </div>
+    <div class="campo">
+      <label>Emoji (opcional)</label>
+      <input type="text" id="m-emoji" placeholder="🍚" maxlength="4">
+    </div>
+    <div class="campo">
+      <label>Categoría</label>
+      <select id="m-categoria"></select>
+    </div>
+    <div class="campo">
+      <label>Unidad</label>
+      <input type="text" id="m-unidad" placeholder="kg, litros, unidades...">
+    </div>
+    <div class="campo">
+      <label>Cantidad en stock</label>
+      <input type="number" id="m-stock" min="0" value="1">
+    </div>
+    <div class="campo">
+      <label>Stock mínimo (avisa cuando baje de esta cantidad)</label>
+      <input type="number" id="m-minimo" min="1" value="2">
+    </div>
+    <div class="campo">
+      <label>Precio unitario en Bs (2 decimales) · 0 = pendiente de cargar</label>
+      <input type="number" id="m-precio" min="0" step="0.01" placeholder="Ej: 8.50">
+    </div>
+    <div class="campo">
+      <label>Fecha de vencimiento (opcional)</label>
+      <input type="date" id="m-vencimiento">
+    </div>
+    <div class="modal-botones">
+      <button class="btn-secundario" onclick="cerrarModal()">Cancelar</button>
+      <button class="btn-primario" onclick="guardarProducto()">Guardar</button>
+    </div>
+    <button id="btn-eliminar-modal" class="btn-peligro oculto" onclick="eliminarDesdeModal()">🗑️ Eliminar producto</button>
+  </div>
+</div>
+
+<!-- Modal aplicar inflación (vista previa) -->
+<div id="modal-inflacion" class="modal-fondo" onclick="cerrarInflacionSiFondo(event)">
+  <div class="modal">
+    <h3>📈 Aplicar inflación del INE</h3>
+    <div class="campo">
+      <label>Período de variación a aplicar</label>
+      <select id="i-periodo" onchange="renderPreviewInflacion()">
+        <option value="var_mensual">Variación mensual</option>
+        <option value="var_acumulada">Variación acumulada (en el año)</option>
+        <option value="var_12m">Variación a 12 meses</option>
+      </select>
+    </div>
+    <p id="i-nota" class="nota-modal"></p>
+    <div id="i-preview" class="preview-lista"></div>
+    <div class="modal-botones">
+      <button class="btn-secundario" onclick="cerrarModalInflacion()">Cancelar</button>
+      <button class="btn-primario" onclick="aplicarInflacion()">Aplicar ajuste</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal asistente "Personalizar mi negocio" -->
+<div id="modal-asistente" class="modal-fondo" onclick="MU.negocioUI.cerrarAsistenteSiFondo(event)">
+  <div class="modal">
+    <h3>🏪 Personalizar mi negocio</h3>
+    <p class="nota-pequena">Asistente de configuración. Podés modificarlo después sin perder productos ni movimientos.</p>
+    <div class="campo">
+      <label>1 · Nombre del negocio</label>
+      <input type="text" id="c-nombre" placeholder="Ej: Doña María Abarrotes">
+    </div>
+    <div class="campo">
+      <label>2 · Sector económico</label>
+      <select id="c-sector" onchange="MU.negocioUI.cambioSector()"></select>
+    </div>
+    <div class="campo">
+      <label>3 · Subcategoría de actividad</label>
+      <select id="c-subcategoria"></select>
+    </div>
+    <div class="campo">
+      <label>4 · ¿Qué vendés? (productos o servicios)</label>
+      <textarea id="c-descripcion" rows="2" placeholder="Ej: abarrotes, bebidas y útiles escolares de barrio"></textarea>
+    </div>
+    <div class="doble-campo">
+      <div class="campo">
+        <label>5 · Moneda</label>
+        <select id="c-moneda">
+          <option value="Bs" selected>Bolivianos (Bs)</option>
+          <option value="USD">Dólares (USD)</option>
+          <option value="other">Otra</option>
+        </select>
+      </div>
+      <div class="campo">
+        <label>6 · Registro de existencias</label>
+        <select id="c-metodo">
+          <option value="entero" selected>Cantidades enteras</option>
+          <option value="decimal">Permitir decimales (kg, litros)</option>
+        </select>
+      </div>
+    </div>
+    <div class="campo">
+      <label>7 · Unidades sugeridas en formularios</label>
+      <select id="c-unidades">
+        <option value="auto" selected>Según el sector (kg/l/un)</option>
+        <option value="un">Siempre "unidades"</option>
+      </select>
+    </div>
+    <div class="modal-botones">
+      <button class="btn-secundario" onclick="MU.negocioUI.cerrarAsistente()">Cancelar</button>
+      <button class="btn-primario" onclick="MU.negocioUI.guardarAsistente()">Guardar y activar modo negocio</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal producto del negocio (alta/edición, semiasistido) -->
+<div id="modal-producto-neg" class="modal-fondo" onclick="MU.negocioUI.cerrarProductoSiFondo(event)">
+  <div class="modal">
+    <h3 id="pn-titulo">Agregar producto</h3>
+
+    <!-- Paso 1: catálogo genérico o manual -->
+    <div id="pn-paso1">
+      <p class="nota-pequena">¿Querés partir de un producto genérico del catálogo o cargarlo a mano?</p>
+      <div class="campo">
+        <label>Buscar en el catálogo</label>
+        <input type="search" id="pn-buscar" placeholder="Ej: arroz, detergente, camiseta..." oninput="MU.negocioUI.buscarCatalogo()">
+      </div>
+      <div id="pn-catalogo" class="lista-catalogo"></div>
+      <div class="modal-botones">
+        <button class="btn-secundario" onclick="MU.negocioUI.cerrarProducto()">Cancelar</button>
+        <button class="btn-primario" onclick="MU.negocioUI.abrirFormulario(null)">✍️ Cargar manualmente</button>
+      </div>
+    </div>
+
+    <!-- Paso 2: formulario editable -->
+    <div id="pn-paso2" class="oculto">
+      <p id="pn-sugerencia" class="nota-pequena oculto"></p>
+      <div id="pn-duplicado" class="banner estado-atencion oculto"></div>
+      <div class="campo"><label>Nombre *</label><input type="text" id="pn-nombre"></div>
+      <div class="doble-campo">
+        <div class="campo"><label>Categoría</label><input type="text" id="pn-categoria" list="pn-cats" placeholder="Ej: Abarrotes"><datalist id="pn-cats"></datalist></div>
+        <div class="campo"><label>Marca</label><input type="text" id="pn-marca"></div>
+      </div>
+      <div class="doble-campo">
+        <div class="campo"><label>Código / SKU</label><input type="text" id="pn-sku"></div>
+        <div class="campo"><label>Código de barras</label><input type="text" id="pn-barras"></div>
+      </div>
+      <div class="doble-campo">
+        <div class="campo"><label>Unidad *</label><input type="text" id="pn-unidad" placeholder="kg, litros, unidades..."></div>
+        <div class="campo"><label>Unidad base (para comparar)</label>
+          <select id="pn-unidadbase">
+            <option value="un">Unidad (un/par/caja...)</option>
+            <option value="kg">Kilogramo (kg/g)</option>
+            <option value="l">Litro (l/ml)</option>
+          </select>
+        </div>
+      </div>
+      <div id="pn-stock-inicial-campo" class="campo">
+        <label>Cantidad inicial en stock *</label>
+        <input type="number" id="pn-stock" min="0" step="0.01" value="0">
+      </div>
+      <p id="pn-stock-nota" class="nota-pequena oculto">La cantidad se modifica con Entradas, Ventas y Ajustes (todo queda registrado).</p>
+      <div class="doble-campo">
+        <div class="campo"><label>Stock mínimo (aviso de reposición)</label><input type="number" id="pn-minimo" min="0" step="0.01" value="1"></div>
+        <div class="campo"><label>Costo unitario Bs (para estadísticas)</label><input type="number" id="pn-costo" min="0" step="0.01"></div>
+      </div>
+      <div class="doble-campo">
+        <div class="campo"><label>Precio de venta Bs</label><input type="number" id="pn-precioventa" min="0" step="0.01"></div>
+        <div class="campo"><label>Vencimiento (opcional)</label><input type="date" id="pn-vencimiento"></div>
+      </div>
+      <div class="doble-campo">
+        <div class="campo"><label>Proveedor</label><input type="text" id="pn-proveedor"></div>
+        <div class="campo"><label>Ubicación física</label><input type="text" id="pn-ubicacion" placeholder="Ej: estante 2"></div>
+      </div>
+      <div class="campo"><label>Descripción</label><textarea id="pn-descripcion" rows="2"></textarea></div>
+      <div class="campo"><label><input type="checkbox" id="pn-activo" checked> Producto activo (visible en ventas)</label></div>
+      <div class="modal-botones">
+        <button class="btn-secundario" id="pn-volver" onclick="MU.negocioUI.volverPaso1()">← Otra opción</button>
+        <button class="btn-primario" onclick="MU.negocioUI.guardarProductoModal()">Guardar producto</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Área de impresión (PDF) -->
+<div id="areaImpresion" class="oculto"></div>
+
+<script src="js/ine_ipc.js"></script>
+<script src="js/datos.js"></script>
+<script src="js/nucleo.js"></script>
+<script src="js/catalogo.js"></script>
+<script src="js/negocio.js"></script>
+<script src="js/estadisticas.js"></script>
+<script src="js/mercado.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
